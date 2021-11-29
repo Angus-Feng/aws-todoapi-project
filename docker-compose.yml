@@ -1,0 +1,61 @@
+version: "3"
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: student
+      MYSQL_DATABASE: app_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: student
+    ports:
+      - "6033:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - internal
+    labels:
+      - traefik.enable=false
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: pma
+    links:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    labels:
+      - traefik.http.routers.adminer.rule=Host(`db-admin.febf.mywire.org`)
+      - traefik.http.routers.adminer.tls=true
+      - traefik.http.routers.adminer.tls.certresolver=lets-encrypt
+      - traefik.port=8081
+    networks:
+      - internal
+      - web
+  todoapi:
+    build: .
+    command: npm run start
+    volumes:
+      - .:/src
+    labels:
+      - traefik.http.routers.blog.rule=Host(`api.febf.mywire.org`)
+      - traefik.http.routers.blog.tls=true
+      - traefik.http.routers.blog.tls.certresolver=lets-encrypt
+      - traefik.port=80
+    networks:
+      - internal
+      - web
+    depends_on:
+      - db
+volumes:
+  dbdata:
+
