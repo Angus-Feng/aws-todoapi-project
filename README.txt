@@ -11,5 +11,5 @@ https://monitor.febf.mywire.org/dashboard/
 user: admin
 pw: student
 
-Todo Rest api:
+Todo Restful api:
 https://api.febf.mywire.org/api/todos
